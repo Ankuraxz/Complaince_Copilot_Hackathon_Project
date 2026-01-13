@@ -133,7 +133,10 @@ NEXT_PUBLIC_GA_ID=[google-analytics-id]
    - Output Directory: `.next`
    - Install Command: `npm install`
    
-   **Important**: Prisma CLI is included in `dependencies` (not `devDependencies`) to ensure `prisma generate` runs during the Vercel build process. The `postinstall` script automatically generates the Prisma Client after installation.
+   **Important**: 
+   - Prisma CLI is included in `dependencies` (not `devDependencies`) to ensure `prisma generate` runs during the Vercel build process
+   - TypeScript and type definitions (`typescript`, `@types/node`, `@types/react`, `@types/react-dom`) are also in `dependencies` because Next.js requires them during the build
+   - The `postinstall` script automatically generates the Prisma Client after installation
 
 3. **Set Environment Variables**
    - Go to Vercel Dashboard → Project → Settings → Environment Variables
