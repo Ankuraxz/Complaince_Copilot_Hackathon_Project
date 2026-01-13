@@ -134,8 +134,9 @@ NEXT_PUBLIC_GA_ID=[google-analytics-id]
    - Install Command: `npm install`
    
    **Important**: 
-   - Prisma CLI is included in `dependencies` (not `devDependencies`) to ensure `prisma generate` runs during the Vercel build process
-   - TypeScript and type definitions (`typescript`, `@types/node`, `@types/react`, `@types/react-dom`) are also in `dependencies` because Next.js requires them during the build
+   - Prisma CLI is included in `dependencies` (not `devDependencies`) to ensure `prisma generate` runs during the `postinstall` script, which executes after `npm install`
+   - Tailwind CSS and PostCSS (`tailwindcss`, `postcss`, `autoprefixer`, `tailwindcss-animate`) are in `dependencies` because `@heroui/theme` imports `tailwindcss/plugin.js` at build time via webpack
+   - TypeScript and type definitions are in `devDependencies` - Vercel installs devDependencies during the build phase, so they're available when needed
    - The `postinstall` script automatically generates the Prisma Client after installation
 
 3. **Set Environment Variables**
@@ -236,8 +237,9 @@ NEXT_PUBLIC_GA_ID=[google-analytics-id]
 **Solution:**
 - Check Node.js version (should be 18+)
 - Verify all dependencies are in `package.json`
-- **Prisma CLI Error**: Ensure `prisma` is in `dependencies` (not `devDependencies`) for Vercel builds
-- **TypeScript Error**: Ensure `typescript`, `@types/node`, `@types/react`, and `@types/react-dom` are in `dependencies` (not `devDependencies`) - Next.js needs them during build
+- **Prisma CLI Error**: Ensure `prisma` is in `dependencies` (not `devDependencies`) - the `postinstall` script needs it, and some Vercel configurations may not install devDependencies before postinstall runs
+- **TypeScript Error**: TypeScript and type definitions should be in `devDependencies` - Vercel installs devDependencies during build. If you see TypeScript errors, check Vercel build settings to ensure devDependencies are installed
+- **Tailwind CSS Error**: Ensure `tailwindcss`, `postcss`, `autoprefixer` are in `dependencies` - `@heroui/theme` imports them at build time via webpack
 - The `postinstall` script runs `prisma generate` - Prisma CLI must be available
 - Check for TypeScript errors: `npm run type-check`
 - Review Vercel build logs
