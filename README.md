@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)
 ![Tech](https://img.shields.io/badge/Stack-Next.js_14_|_LangGraph_|_MCP-blue?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-OpenAI_GPT--4o_Swarm-purple?style=for-the-badge)
+![AI](https://img.shields.io/badge/AI-OpenAI_GPT--5_Swarm-purple?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 > **Autonomous AI-powered compliance assessment platform.** Get audit-ready reports for SOC2, GDPR, HIPAA, ISO 27001, and PCI DSS in minutes, not months.
