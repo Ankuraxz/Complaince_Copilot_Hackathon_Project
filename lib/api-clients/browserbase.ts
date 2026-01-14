@@ -30,7 +30,14 @@ export class BrowserbaseClient {
       });
 
       if (!sessionResponse.ok) {
-        throw new Error(`Browserbase API error: ${sessionResponse.statusText}`);
+        const errorText = await sessionResponse.text();
+        throw new Error(`Browserbase API error: ${sessionResponse.statusText} - ${errorText.substring(0, 200)}`);
+      }
+
+      const sessionContentType = sessionResponse.headers.get('content-type');
+      if (!sessionContentType || !sessionContentType.includes('application/json')) {
+        const text = await sessionResponse.text();
+        throw new Error(`Expected JSON response but got ${sessionContentType}. Response: ${text.substring(0, 200)}`);
       }
 
       const sessionData = await sessionResponse.json();
@@ -46,7 +53,17 @@ export class BrowserbaseClient {
       });
 
       if (!contentResponse.ok) {
-        throw new Error(`Failed to get content: ${contentResponse.statusText}`);
+        const errorText = await contentResponse.text();
+        throw new Error(`Failed to get content: ${contentResponse.statusText} - ${errorText.substring(0, 200)}`);
+      }
+
+      const contentContentType = contentResponse.headers.get('content-type');
+      if (!contentContentType || !contentContentType.includes('application/json')) {
+        // If it's HTML, try to extract text from it
+        const html = await contentResponse.text();
+        // Simple HTML to text extraction (fallback)
+        const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        return text.substring(0, 10000); // Limit to 10k chars
       }
 
       const contentData = await contentResponse.json();

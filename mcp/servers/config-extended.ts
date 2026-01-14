@@ -463,6 +463,39 @@ export const grafanaMCPConfig: MCPServerConfig = {
 };
 
 /**
+ * Instana MCP Server Configuration
+ * Application Performance Monitoring (APM) and observability
+ * Reference: https://github.com/instana/mcp-instana
+ * 
+ * Instana MCP server is deployed as an HTTP/SSE server.
+ * Users can either:
+ * 1. Deploy via Docker: docker run -p 8080:8080 mcp-instana
+ * 2. Run directly: python -m mcp_instana
+ * 
+ * The server requires:
+ * - Instana instance URL (user's Instana SaaS or on-premise URL)
+ * - Instana API key (passed via HTTP headers)
+ * 
+ * BYOK: User provides Instana MCP server URL and API key
+ */
+export const instanaMCPConfig: MCPServerConfig = {
+  name: 'instana',
+  type: 'sse',
+  // User provides their Instana MCP server URL
+  // Default: http://localhost:8080/mcp (if running locally)
+  // Production: User's deployed Instana MCP server URL
+  url: process.env.INSTANA_MCP_URL || 'http://localhost:8080/mcp',
+  description: 'Instana MCP server for application performance monitoring and observability',
+  category: 'monitoring',
+  // BYOK: Instana API key (passed via HTTP headers)
+  apiKey: process.env.INSTANA_API_KEY || '',
+  env: {
+    INSTANA_API_KEY: process.env.INSTANA_API_KEY || '',
+    INSTANA_URL: process.env.INSTANA_URL || '', // User's Instana instance URL
+  },
+};
+
+/**
  * Register all MCP servers
  */
 export function registerAllMCPServers(clientManager: any): void {
@@ -487,6 +520,7 @@ export function registerAllMCPServers(clientManager: any): void {
   clientManager.registerServer(datadogMCPConfig); // Coming soon
   clientManager.registerServer(dash0MCPConfig);
   clientManager.registerServer(grafanaMCPConfig);
+  clientManager.registerServer(instanaMCPConfig);
   
   // Communication & Documentation
   clientManager.registerServer(notionMCPConfig);
@@ -519,6 +553,7 @@ export function getMCPServersByCategory(category: string): MCPServerConfig[] {
     datadogMCPConfig,
     dash0MCPConfig,
     grafanaMCPConfig,
+    instanaMCPConfig,
     notionMCPConfig,
     atlassianMCPConfig,
     miroMCPConfig,

@@ -27,12 +27,14 @@ export async function POST(request: NextRequest) {
       apiToken,
       customEnv,
       projectId,
+      url, // For SSE/HTTP type servers
     }: {
       serverName: string;
       apiKey?: string;
       apiToken?: string;
       customEnv?: Record<string, string>;
       projectId?: string;
+      url?: string;
     } = await request.json();
 
     if (!serverName) {
@@ -59,6 +61,18 @@ export async function POST(request: NextRequest) {
       apiToken,
       customEnv,
     };
+
+    // For SSE/HTTP servers, update the config URL if provided
+    // Access the private configs map via type assertion
+    if (url) {
+      const configsMap = (mcpClientManager as any).configs as Map<string, any>;
+      const config = configsMap.get(serverName);
+      if (config && (config.type === 'sse' || config.type === 'http')) {
+        // Update the config URL temporarily for this connection
+        const updatedConfig = { ...config, url };
+        mcpClientManager.registerServer(updatedConfig);
+      }
+    }
 
     // Test connection with userId for isolation
     try {

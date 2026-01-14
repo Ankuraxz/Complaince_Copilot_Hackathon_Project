@@ -54,6 +54,7 @@ import {
   dash0MCPConfig,
   gcloudMCPConfig,
   grafanaMCPConfig,
+  instanaMCPConfig,
   // Analysis & Research servers (Firecrawl, Perplexity, Browserbase, Playwright) 
   // are for internal SaaS use only, not shown to end users
   // Cloudflare Container MCP is also for internal use only (uses CLOUDFLARE_API_TOKEN from env)
@@ -74,6 +75,7 @@ export function MCPConnectionManager() {
   const [apiKey, setApiKey] = useState('');
   const [apiToken, setApiToken] = useState('');
   const [customEnv, setCustomEnv] = useState<Record<string, string>>({});
+  const [serverUrl, setServerUrl] = useState(''); // For SSE/HTTP type servers like Instana
 
   useEffect(() => {
     fetchConnections();
@@ -187,6 +189,11 @@ export function MCPConnectionManager() {
   const handleBYOKConnect = async () => {
     if (!selectedServer) return;
 
+    // Get server config to check if it's SSE/HTTP type
+    const allServers = [...cloudServers, ...codeServers, ...monitoringServers, ...communicationServers];
+    const serverConfig = allServers.find(s => s.name === selectedServer);
+    const isSSE = serverConfig?.type === 'sse' || serverConfig?.type === 'http';
+
     try {
       const response = await fetch('/api/mcp/connect-byok', {
         method: 'POST',
@@ -196,6 +203,8 @@ export function MCPConnectionManager() {
           apiKey: authType === 'api_key' ? apiKey : undefined,
           apiToken: authType === 'api_token' ? apiToken : undefined,
           customEnv: authType === 'env' ? customEnv : undefined,
+          // For SSE/HTTP servers, include URL if provided
+          url: isSSE && serverUrl ? serverUrl : undefined,
         }),
       });
 
@@ -223,6 +232,7 @@ export function MCPConnectionManager() {
         setApiKey('');
         setApiToken('');
         setCustomEnv({});
+        setServerUrl('');
       }
     } catch (error) {
       console.error('BYOK connect error:', error);
@@ -246,7 +256,7 @@ export function MCPConnectionManager() {
   // User-facing servers (for end users to connect)
   const cloudServers = [awsCoreMCPConfig, azureMCPConfig, cloudflareMCPConfig, gcloudMCPConfig];
   const codeServers = [githubMCPConfig, argocdMCPConfig, sonarqubeMCPConfig, jenkinsMCPConfig];
-  const monitoringServers = [sentryMCPConfig, datadogMCPConfig, dash0MCPConfig, grafanaMCPConfig];
+  const monitoringServers = [sentryMCPConfig, datadogMCPConfig, dash0MCPConfig, grafanaMCPConfig, instanaMCPConfig];
   const communicationServers = [notionMCPConfig, atlassianMCPConfig, miroMCPConfig];
   
   // Analysis & Research servers are for internal SaaS use only, not shown to users
@@ -269,6 +279,7 @@ export function MCPConnectionManager() {
       'miro': 'MIRO',
       'jenkins': 'Jenkins',
       'grafana': 'Grafana',
+      'instana': 'Instana',
       'sentry': 'Sentry',
       'notion': 'Notion',
       'cloudflare': 'Cloudflare',
@@ -300,6 +311,7 @@ export function MCPConnectionManager() {
       'datadog': BarChart3,
       'dash0': TrendingUp,
       'grafana': LineChart,
+      'instana': Activity,
       'notion': FileText,
       'atlassian': Briefcase,
       'miro': Palette,
@@ -545,6 +557,28 @@ export function MCPConnectionManager() {
                 <option value="env">Environment Variables (JSON)</option>
               </select>
             </div>
+
+            {/* Show URL input for SSE/HTTP type servers like Instana */}
+            {(() => {
+              const allServers = [...cloudServers, ...codeServers, ...monitoringServers, ...communicationServers];
+              const serverConfig = selectedServer ? allServers.find(s => s.name === selectedServer) : null;
+              return selectedServer && (serverConfig?.type === 'sse' || serverConfig?.type === 'http');
+            })() && (
+              <div>
+                <Label>Server URL</Label>
+                <Input
+                  type="url"
+                  value={serverUrl}
+                  onChange={(e) => setServerUrl(e.target.value)}
+                  placeholder={selectedServer === 'instana' ? 'https://your-instana-mcp-server.com/mcp' : 'https://your-mcp-server.com/mcp'}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedServer === 'instana' 
+                    ? 'Enter your Instana MCP server URL (e.g., http://localhost:8080/mcp or your deployed server URL)'
+                    : 'Enter your MCP server URL'}
+                </p>
+              </div>
+            )}
 
             {authType === 'api_key' && (
               <div>
